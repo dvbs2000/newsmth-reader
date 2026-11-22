@@ -20,6 +20,9 @@ interface FloorCardProps {
   currentUsername?: string;
   prefs: UserPreferences;
   focused?: boolean;
+  likeCount?: number;
+  myLiked?: boolean;
+  onOpenLike?: () => void;
   onReply: (article: ArticleObj) => void;
   onEdit?: (article: ArticleObj) => void;
   onDelete?: (article: ArticleObj) => void;
@@ -35,6 +38,9 @@ export function FloorCard({
   currentUsername,
   prefs,
   focused,
+  likeCount,
+  myLiked,
+  onOpenLike,
   onReply,
   onEdit,
   onDelete,
@@ -51,12 +57,9 @@ export function FloorCard({
   const avatar = article.account?.k3sUrl || article.account?.avatarUrl;
   const isOp = Boolean(opUsername && author === opUsername) || article.topicOrder === 1;
   const isMine = Boolean(currentUsername && author.toLowerCase() === currentUsername.toLowerCase());
+  // Only show numeric floor badge on replies; OP already shows the blue 楼主 pill beside author name
   const floorLabel =
-    article.topicOrder === 1
-      ? '楼主'
-      : article.topicOrder && article.topicOrder > 1
-        ? `${article.topicOrder - 1}楼`
-        : '';
+    article.topicOrder && article.topicOrder > 1 ? `${article.topicOrder - 1}楼` : '';
 
   const parsed = useMemo(
     () => parseArticleBody(article.body || '', prefs.stripSignature),
@@ -88,10 +91,10 @@ export function FloorCard({
 
   const rawList = useMemo(() => imageUrls.map((i) => i.url), [imageUrls]);
 
-  const renderActions = () => (
+  const renderSecondaryActions = () => (
     <>
       <button type="button" className="floor-action-btn" onClick={() => onReply(article)}>
-        <CornerUpLeft size={11.5} />
+        <CornerUpLeft size={12.5} />
         回复
       </button>
 
@@ -101,14 +104,14 @@ export function FloorCard({
           className="floor-action-btn"
           onClick={() => onFilterAuthor(article)}
         >
-          <Filter size={11.5} />
+          <Filter size={12} />
           只看TA
         </button>
       ) : null}
 
       {isMine && onEdit ? (
         <button type="button" className="floor-action-btn" onClick={() => onEdit(article)}>
-          <Pencil size={11.5} />
+          <Pencil size={12} />
           编辑
         </button>
       ) : null}
@@ -119,7 +122,7 @@ export function FloorCard({
           className="floor-action-btn danger"
           onClick={() => onDelete(article)}
         >
-          <Trash2 size={11.5} />
+          <Trash2 size={12} />
           删除
         </button>
       ) : null}
@@ -131,7 +134,7 @@ export function FloorCard({
           title={`本地屏蔽 ${author}`}
           onClick={() => onBlockUser(author)}
         >
-          <Ban size={11.5} />
+          <Ban size={12} />
           屏蔽
         </button>
       ) : null}
@@ -165,9 +168,9 @@ export function FloorCard({
           ) : null}
         </div>
 
-        {/* Desktop hover-reveal actions inside header — zero vertical waste */}
+        {/* Inline hover-reveal actions in header row — zero vertical height waste on short replies */}
         <div className="floor-hover-actions" aria-label="楼层操作">
-          {renderActions()}
+          {renderSecondaryActions()}
         </div>
 
         <div className="floor-right-meta tabular">
@@ -178,12 +181,7 @@ export function FloorCard({
               {formatRelativeTime(article.postTime)}
             </span>
           ) : null}
-          {floorLabel ? (
-            <>
-              <span className="floor-meta-sep">·</span>
-              <span className="mono">{floorLabel}</span>
-            </>
-          ) : null}
+          {floorLabel ? <span className="floor-rank-badge">{floorLabel}</span> : null}
           <button
             type="button"
             className="floor-more-btn"
@@ -204,7 +202,7 @@ export function FloorCard({
           if (seg.type === 'quote') {
             const isOpen = !prefs.collapseQuotes || Boolean(expandedQuotes[idx]);
             return (
-              <div key={idx} className="quote-block">
+              <div key={idx} className={`quote-block ${isOpen ? 'expanded' : 'collapsed'}`}>
                 <button
                   type="button"
                   className="quote-toggle"
@@ -212,7 +210,7 @@ export function FloorCard({
                     setExpandedQuotes((prev) => ({ ...prev, [idx]: !isOpen }))
                   }
                 >
-                  {isOpen ? <ChevronDown size={11.5} /> : <ChevronRight size={11.5} />}
+                  {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                   <span>
                     {seg.header}（{seg.lineCount}行）
                   </span>
@@ -258,7 +256,27 @@ export function FloorCard({
         </div>
       ) : null}
 
-      {mobileMenuOpen ? <div className="floor-mobile-actions">{renderActions()}</div> : null}
+      {/* Only OP card carries the signature Zhihu blue vote pill in a compact footer */}
+      {onOpenLike ? (
+        <div className="floor-actions-bar" aria-label="主帖操作">
+          <button
+            type="button"
+            className={`floor-vote-btn ${myLiked ? 'active' : ''}`}
+            onClick={onOpenLike}
+          >
+            <span aria-hidden="true">▲</span>
+            <span>赞同{likeCount && likeCount > 0 ? ` ${likeCount}` : ''}</span>
+          </button>
+          <button type="button" className="floor-action-btn" onClick={() => onReply(article)}>
+            <CornerUpLeft size={13} />
+            回复主帖
+          </button>
+        </div>
+      ) : null}
+
+      {mobileMenuOpen ? (
+        <div className="floor-mobile-actions">{renderSecondaryActions()}</div>
+      ) : null}
     </article>
   );
 }

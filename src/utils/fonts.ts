@@ -8,13 +8,13 @@ export interface FontPreset {
 }
 
 export const DEFAULT_FONT_STACK =
-  "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Noto Sans SC', 'Helvetica Neue', sans-serif";
+  "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif";
 
 export const BUILTIN_FONT_PRESETS: FontPreset[] = [
   {
     id: 'system',
-    label: '系统默认（苹方 / 微软雅黑）',
-    note: '跨平台高清无衬线',
+    label: '知乎默认（系统无衬线 · 苹方 / 微软雅黑）',
+    note: '与 Zhihu Zen 一致的高清系统无衬线字栈',
     stack: DEFAULT_FONT_STACK,
   },
   {

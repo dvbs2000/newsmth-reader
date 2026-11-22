@@ -199,11 +199,15 @@ export interface CustomFontItem {
 }
 
 export interface UserPreferences {
-  theme: 'light' | 'dark' | 'oled' | 'system';
+  prefVersion?: number;
+  theme: 'light' | 'navy' | 'dark' | 'oled' | 'system';
   fontSize: number;
+  widthPct: number;
   colWidth: number;
   fontId: string;
   customSystemFont: string;
+  listStyle: 'feed' | 'compact';
+  boardListStyle: 'compact' | 'feed';
   tapToPage: boolean;
   imageMode: 'collapsed' | 'stealth' | 'auto';
   hideAvatars: boolean;

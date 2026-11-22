@@ -4,13 +4,18 @@ import type { CustomFontItem, LocalDataStore, UserPreferences } from '../types/s
 import { buildFontFacesCss, resolveFontStack } from '../utils/fonts';
 
 const LS_KEY = 'xsmth_settings_v1';
+const PREF_VERSION = 2;
 
 const DEFAULT_PREFS: UserPreferences = {
-  theme: 'system',
-  fontSize: 15.5,
-  colWidth: 720,
+  prefVersion: PREF_VERSION,
+  theme: 'light',
+  fontSize: 16,
+  widthPct: 98,
+  colWidth: 980,
   fontId: 'system',
   customSystemFont: '',
+  listStyle: 'compact',
+  boardListStyle: 'compact',
   tapToPage: true,
   imageMode: 'collapsed',
   hideAvatars: true,
@@ -46,11 +51,29 @@ const DEFAULT_LOCAL: LocalDataStore = {
   preferences: DEFAULT_PREFS,
 };
 
+function normalizePrefs(raw?: Partial<UserPreferences> | null): UserPreferences {
+  if (!raw) return DEFAULT_PREFS;
+  if (raw.prefVersion !== PREF_VERSION) {
+    return {
+      ...DEFAULT_PREFS,
+      ...raw,
+      prefVersion: PREF_VERSION,
+      widthPct: 98,
+      fontSize: 16,
+      fontId: 'system',
+      customSystemFont: '',
+      listStyle: 'compact',
+      boardListStyle: 'compact',
+    };
+  }
+  return { ...DEFAULT_PREFS, ...raw };
+}
+
 function readCachedPrefs(): UserPreferences {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return DEFAULT_PREFS;
-    return { ...DEFAULT_PREFS, ...(JSON.parse(raw) as Partial<UserPreferences>) };
+    return normalizePrefs(JSON.parse(raw) as Partial<UserPreferences>);
   } catch {
     return DEFAULT_PREFS;
   }
@@ -71,13 +94,18 @@ function applyThemeToDom(prefs: UserPreferences, customFonts: CustomFontItem[]):
   const resolved =
     prefs.theme === 'system'
       ? window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
+        ? 'navy'
         : 'light'
       : prefs.theme;
   const fontStack = resolveFontStack(prefs, customFonts);
+  const pct = Math.max(50, Math.min(100, Number(prefs.widthPct) || 98));
+  const padX = pct >= 99 ? 10 : pct >= 96 ? 14 : 20;
+  const fontSz = Math.max(14, Math.min(22, Number(prefs.fontSize) || 16));
+
   document.documentElement.dataset.theme = resolved;
-  document.documentElement.style.setProperty('--font-size-body', `${prefs.fontSize}px`);
-  document.documentElement.style.setProperty('--col-width', `${prefs.colWidth}px`);
+  document.documentElement.style.setProperty('--font-size-body', `${fontSz}px`);
+  document.documentElement.style.setProperty('--content-width', `${pct}%`);
+  document.documentElement.style.setProperty('--card-pad-x', `${padX}px`);
   document.documentElement.style.setProperty('--font-reading', fontStack);
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({ ...prefs, resolvedFontStack: fontStack }));
@@ -115,7 +143,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       .then((data) => {
         setLocalData({ ...DEFAULT_LOCAL, ...data, customFonts: data.customFonts || [] });
         if (data.preferences) {
-          setPrefs({ ...DEFAULT_PREFS, ...data.preferences });
+          setPrefs(normalizePrefs(data.preferences));
         }
       })
       .catch(() => {});
@@ -134,11 +162,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const cycleTheme = useCallback(() => {
-    const order: Array<UserPreferences['theme']> = ['light', 'dark', 'oled'];
+    const order: Array<UserPreferences['theme']> = ['light', 'navy', 'dark', 'oled'];
     const current =
       prefs.theme === 'system'
         ? window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
+          ? 'navy'
           : 'light'
         : prefs.theme;
     const next = order[(order.indexOf(current) + 1) % order.length];

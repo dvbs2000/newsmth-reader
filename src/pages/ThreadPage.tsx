@@ -539,9 +539,11 @@ export function ThreadPage({
           const next = Math.min(visibleArticles.length - 1, prev + 1);
           const id = visibleArticles[next]?.id;
           if (id) {
-            document
-              .querySelector(`[data-article-id="${id}"]`)
-              ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const el = document.querySelector<HTMLElement>(`[data-article-id="${id}"]`);
+            if (el) {
+              const top = Math.max(0, window.scrollY + el.getBoundingClientRect().top - 8);
+              window.scrollTo({ top, behavior: 'instant' });
+            }
           }
           return next;
         });
@@ -551,9 +553,11 @@ export function ThreadPage({
           const next = Math.max(0, prev - 1);
           const id = visibleArticles[next]?.id;
           if (id) {
-            document
-              .querySelector(`[data-article-id="${id}"]`)
-              ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const el = document.querySelector<HTMLElement>(`[data-article-id="${id}"]`);
+            if (el) {
+              const top = Math.max(0, window.scrollY + el.getBoundingClientRect().top - 8);
+              window.scrollTo({ top, behavior: 'instant' });
+            }
           }
           return next;
         });
@@ -583,127 +587,133 @@ export function ThreadPage({
         : `已加载第 ${startPage}–${loadedPage} / ${totalPages} 页`
       : undefined;
 
+  const openLikeDialog = () => {
+    if (!status?.loggedIn) {
+      openLoginDialog();
+      showToast('Like 打分前请先登录');
+      return;
+    }
+    setLikeBody(myLike?.body || '');
+    setLikeScore(myLike?.score ?? 1);
+    setLikeDialogOpen(true);
+  };
+
   return (
     <div>
-      <div className="thread-header">
-        <h1 className="thread-subject">{subjectText || '加载中...'}</h1>
-        <div className="thread-meta-bar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {board?.id ? (
-              <button
-                type="button"
-                className="board-pill"
-                onClick={() =>
-                  navigate({
-                    name: 'board',
-                    boardId: board.id,
-                    boardName: board.name,
-                    boardTitle: board.title || board.name,
-                  })
-                }
-              >
-                {board.title || board.name}
-              </button>
-            ) : null}
-            {opUsername ? <span>楼主 {opUsername}</span> : null}
-            <span className="tabular">共 {totalItems} 楼</span>
+      <div className="thread-header-card">
+        <div className="thread-header">
+          <h1 className="thread-subject">{subjectText || '加载中...'}</h1>
+          <div className="thread-meta-bar">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              {board?.id ? (
+                <button
+                  type="button"
+                  className="board-pill"
+                  onClick={() =>
+                    navigate({
+                      name: 'board',
+                      boardId: board.id,
+                      boardName: board.name,
+                      boardTitle: board.title || board.name,
+                    })
+                  }
+                >
+                  {board.title || board.name}
+                </button>
+              ) : null}
+              {opUsername ? <span>楼主 {opUsername}</span> : null}
+              <span className="tabular">共 {totalItems} 楼</span>
+            </div>
+
+            <button
+              type="button"
+              className="icon-btn"
+              style={{ minWidth: 28, height: 28 }}
+              title="刷新 (U)"
+              aria-label="刷新帖子"
+              onClick={() => {
+                clearViewCache(cacheKey);
+                void loadInitial();
+              }}
+            >
+              <RefreshCw size={14} />
+            </button>
           </div>
+        </div>
+
+        <div className="thread-controls">
+          {(
+            [
+              [1, '正序'],
+              [0, '只看楼主'],
+              [2, '最新'],
+              [6, '精华'],
+            ] as Array<[ThreadMode, string]>
+          ).map(([m, label]) => (
+            <button
+              key={m}
+              type="button"
+              className={`chip-btn ${mode === m ? 'active' : ''}`}
+              onClick={() => {
+                setMode(m);
+                setFilterArticleId(undefined);
+                setFilterAuthorName(undefined);
+                setStartPage(1);
+              }}
+            >
+              {m === 0 ? <UserCheck size={13} /> : null}
+              {label}
+            </button>
+          ))}
+
+          {mode === 3 && filterAuthorName ? (
+            <button
+              type="button"
+              className="chip-btn active"
+              onClick={() => {
+                setMode(1);
+                setFilterArticleId(undefined);
+                setFilterAuthorName(undefined);
+                setStartPage(1);
+              }}
+            >
+              只看 {filterAuthorName} <X size={12} />
+            </button>
+          ) : null}
+
+          <div style={{ flex: 1 }} />
 
           <button
             type="button"
-            className="icon-btn"
-            style={{ minWidth: 28, height: 28 }}
-            title="刷新"
-            aria-label="刷新帖子"
-            onClick={() => {
-              clearViewCache(cacheKey);
-              void loadInitial();
-            }}
+            className={`chip-btn ${favored ? 'active' : ''}`}
+            onClick={() => void handleToggleFavTopic()}
+            title="云端收藏本帖"
           >
-            <RefreshCw size={14} />
+            <Bookmark size={12.5} fill={favored ? 'currentColor' : 'none'} />
+            {favored ? '已藏' : '收藏'}
+          </button>
+
+          {!showMainPost || !mainArticle ? (
+            <button
+              type="button"
+              className={`chip-btn ${myLike ? 'active' : ''}`}
+              onClick={openLikeDialog}
+            >
+              <ThumbsUp size={12.5} />
+              赞同{likes.length > 0 ? ` (${likes.length})` : ''}
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            className="chip-btn primary"
+            onClick={() => openReply()}
+            title="回复主帖 (R)"
+          >
+            <MessageSquarePlus size={12.5} />
+            回复
           </button>
         </div>
-      </div>
-
-      <div className="thread-controls">
-        {(
-          [
-            [1, '正序'],
-            [0, '只看楼主'],
-            [2, '最新'],
-            [6, '精华'],
-          ] as Array<[ThreadMode, string]>
-        ).map(([m, label]) => (
-          <button
-            key={m}
-            type="button"
-            className={`chip-btn ${mode === m ? 'active' : ''}`}
-            onClick={() => {
-              setMode(m);
-              setFilterArticleId(undefined);
-              setFilterAuthorName(undefined);
-              setStartPage(1);
-            }}
-          >
-            {m === 0 ? <UserCheck size={13} /> : null}
-            {label}
-          </button>
-        ))}
-
-        {mode === 3 && filterAuthorName ? (
-          <button
-            type="button"
-            className="chip-btn active"
-            onClick={() => {
-              setMode(1);
-              setFilterArticleId(undefined);
-              setFilterAuthorName(undefined);
-              setStartPage(1);
-            }}
-          >
-            只看 {filterAuthorName} <X size={12} />
-          </button>
-        ) : null}
-
-        <div style={{ flex: 1 }} />
-
-        <button
-          type="button"
-          className={`chip-btn ${favored ? 'active' : ''}`}
-          onClick={() => void handleToggleFavTopic()}
-          title="云端收藏本帖"
-        >
-          <Bookmark size={13} fill={favored ? 'currentColor' : 'none'} />
-          {favored ? '已藏' : '收藏'}
-        </button>
-
-        <button
-          type="button"
-          className={`chip-btn ${myLike ? 'active' : ''}`}
-          onClick={() => {
-            if (!status?.loggedIn) {
-              openLoginDialog();
-              showToast('Like 打分前请先登录');
-              return;
-            }
-            setLikeBody(myLike?.body || '');
-            setLikeScore(myLike?.score ?? 1);
-            setLikeDialogOpen(true);
-          }}
-        >
-          <ThumbsUp size={13} />
-          Like{likes.length > 0 ? ` (${likes.length})` : ''}
-        </button>
-
-        <button
-          type="button"
-          className="chip-btn primary"
-          onClick={() => openReply()}
-          title="回复主帖 (R)"
-        >
-          <MessageSquarePlus size={13} />
-          回复
-        </button>
       </div>
 
       {error ? (
@@ -721,6 +731,9 @@ export function ThreadPage({
           opUsername={opUsername}
           currentUsername={currentUsername}
           prefs={prefs}
+          likeCount={likes.length}
+          myLiked={Boolean(myLike)}
+          onOpenLike={openLikeDialog}
           onReply={(a) => openReply(a)}
           onEdit={handleEdit}
           onDelete={(a) => void handleDelete(a)}
@@ -749,8 +762,8 @@ export function ThreadPage({
 
       {loading ? (
         <div>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="skeleton-row" style={{ padding: '20px 4px' }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton-card">
               <div className="skeleton-bar short" style={{ marginTop: 0, marginBottom: 12 }} />
               <div className="skeleton-bar" style={{ width: '92%' }} />
               <div className="skeleton-bar" style={{ width: '74%', marginTop: 8 }} />
@@ -758,10 +771,14 @@ export function ThreadPage({
           ))}
         </div>
       ) : visibleArticles.length === 0 && !showMainPost ? (
-        <div className="empty-state">暂无楼层内容</div>
+        <div className="paper-sheet">
+          <div className="empty-state">暂无楼层内容</div>
+        </div>
       ) : visibleArticles.length === 0 ? (
-        <div className="empty-state" style={{ padding: '28px 16px' }}>
-          {mode === 0 ? '楼主暂无其他跟帖回复' : '暂无更多回复'}
+        <div className="paper-sheet">
+          <div className="empty-state" style={{ padding: '28px 16px' }}>
+            {mode === 0 ? '楼主暂无其他跟帖回复' : '暂无更多回复'}
+          </div>
         </div>
       ) : (
         <>

@@ -286,7 +286,7 @@ export function FavoritesPage() {
         <div className="empty-state">暂无云端收藏帖</div>
       ) : (
         <>
-          <ul className="feed-list">
+          <ul className="feed-list compact-sheet">
             {favTopics
               .filter((f) => Boolean(f.topicWrapper?.id))
               .map((item) => {
@@ -297,6 +297,7 @@ export function FavoritesPage() {
                     topic={t}
                     tag={item.hasNewReply ? '新回' : undefined}
                     read={Boolean(localData.readTopics[t.id])}
+                    listStyle="compact"
                     onOpenTopic={(topic) =>
                       navigate({
                         name: 'topic',

@@ -346,15 +346,16 @@ export function SettingsPage() {
       <div className="setting-row">
         <div className="setting-info">
           <div className="setting-name">主题色板（快捷键 D）</div>
-          <div className="setting-desc">忠实复刻 xsmth 日间灰阶与 OLED 纯黑</div>
+          <div className="setting-desc">日间柔灰纸感（#f4f6f9 + 纯白卡片）、深海夜蓝、深灰夜间与 OLED 纯黑</div>
         </div>
         <div className="segmented">
           {(
             [
-              ['system', '系统'],
               ['light', '日间'],
-              ['dark', '夜间'],
+              ['navy', '深海夜'],
+              ['dark', '深灰'],
               ['oled', 'OLED'],
+              ['system', '系统'],
             ] as Array<[UserPreferences['theme'], string]>
           ).map(([v, label]) => (
             <button
@@ -371,11 +372,61 @@ export function SettingsPage() {
 
       <div className="setting-row">
         <div className="setting-info">
-          <div className="setting-name">正文字号</div>
-          <div className="setting-desc">调整帖子正文与列表阅读大小</div>
+          <div className="setting-name">首页热点列表样式</div>
+          <div className="setting-desc">今日十大 / 全站热帖默认纯标题紧凑列表（可随时切换摘要卡片）</div>
         </div>
         <div className="segmented">
-          {[14, 15.5, 17, 19].map((size) => (
+          {(
+            [
+              ['compact', '紧凑标题'],
+              ['feed', '摘要卡片'],
+            ] as Array<[UserPreferences['listStyle'], string]>
+          ).map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              className={prefs.listStyle === v ? 'active' : ''}
+              onClick={() => updatePrefs({ listStyle: v })}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-info">
+          <div className="setting-name">版面帖子列表样式</div>
+          <div className="setting-desc">水木特快等版面默认纯标题紧凑列表，一屏扫读更快</div>
+        </div>
+        <div className="segmented">
+          {(
+            [
+              ['compact', '紧凑标题'],
+              ['feed', '摘要卡片'],
+            ] as Array<[UserPreferences['boardListStyle'], string]>
+          ).map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              className={prefs.boardListStyle === v ? 'active' : ''}
+              onClick={() => updatePrefs({ boardListStyle: v })}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-info">
+          <div className="setting-name">正文字号</div>
+          <div className="setting-desc">
+            调整正文与列表字号（与知乎插件一致，默认 16px，支持右上角微点实时拖动 14–22px）
+          </div>
+        </div>
+        <div className="segmented">
+          {[14, 16, 18, 20, 22].map((size) => (
             <button
               key={size}
               type="button"
@@ -390,22 +441,20 @@ export function SettingsPage() {
 
       <div className="setting-row">
         <div className="setting-info">
-          <div className="setting-name">单栏阅读宽度</div>
-          <div className="setting-desc">Mac 宽屏下居中正文栏的最大宽度</div>
+          <div className="setting-name">页面阅读宽度（百分比）</div>
+          <div className="setting-desc">
+            与知乎 Zen 插件同款百分比满屏流（默认 98%，右上角微点面板可 50%–100% 无级拖动）
+          </div>
         </div>
         <div className="segmented">
-          {[
-            [640, '窄'],
-            [720, '标准'],
-            [840, '宽'],
-          ].map(([w, label]) => (
+          {[68, 80, 90, 98, 100].map((pct) => (
             <button
-              key={w}
+              key={pct}
               type="button"
-              className={prefs.colWidth === w ? 'active' : ''}
-              onClick={() => updatePrefs({ colWidth: Number(w) })}
+              className={prefs.widthPct === pct ? 'active' : ''}
+              onClick={() => updatePrefs({ widthPct: pct })}
             >
-              {label}
+              {pct}%
             </button>
           ))}
         </div>

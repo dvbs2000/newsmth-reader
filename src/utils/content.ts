@@ -37,8 +37,8 @@ export function stripHtmlTags(input?: string): string {
 }
 
 const CLIENT_TAIL_PATTERNS = [
-  /^[-—–~\s]*来自\s*[「「\[【(（]?\s*(?:水木社区|最水木|水木|SMTH|xsmth|iSMTH|NewSMTH|Android|iPhone|iPad|HarmonyOS).*$/i,
-  /^[-—–~\s]*发自\s*[「「\[【(（]?\s*(?:今日水木|水木社区|水木|iSMTH|xsmth|SMTH|NewSMTH|最水木|iPhone|Android|iPad|HarmonyOS|小米|华为|vivo|OPPO|客户端|手机).*$/i,
+  /^[-—–~\s#]*来自\s*[「「\[【(（]?\s*(?:水木社区|最水木|水木|SMTH|xsmth|iSMTH|zSMTH|NewSMTH|Android|iPhone|iPad|HarmonyOS).*$/i,
+  /^[-—–~\s#]*发自\s*[「「\[【(（]?\s*(?:今日水木|水木社区|水木|iSMTH|xsmth|zSMTH|SMTH|NewSMTH|最水木|iPhone|Android|iPad|HarmonyOS|小米|华为|vivo|OPPO|客户端|手机).*$/i,
   /^[-—–~\s]*Sent from my .*$/i,
   /^※\s*(?:来源|修改)\s*[:：·].*$/,
   /^FROM\s+\d+\.\d+\.\d+\.\*.*$/i,
@@ -230,4 +230,34 @@ export function buildQuotePrefix(author: string, body: string): string {
 
   if (excerptLines.length === 0) return '';
   return `\n\n【 在 ${author} 的大作中提到: 】\n${excerptLines.join('\n')}\n`;
+}
+
+/**
+ * Produces a clean 2–3 line feed excerpt for Zhihu-Zen style topic cards:
+ * strips HTML, inline client signatures (`#发自zSMTH...`), and BBS quotes,
+ * collapses newlines into smooth flowing prose.
+ */
+export function extractFeedExcerpt(
+  rawBody?: string,
+  maxChars = 118,
+): { text: string; truncated: boolean } {
+  if (!rawBody) return { text: '', truncated: false };
+  const { segments } = parseArticleBody(rawBody, true);
+  let prose = segments
+    .filter((s) => s.type === 'text')
+    .map((s) => s.content)
+    .join(' ')
+    // Also strip inline trailing `#发自zSMTH@...` appended on the same line
+    .replace(/\s+#\s*(?:发自|来自|发送自)[^\n]*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!prose) return { text: '', truncated: false };
+  // Upstream list endpoints often truncate body around ~140-160 chars already
+  const looksUpstreamTruncated = prose.length >= 115;
+  if (prose.length > maxChars) {
+    prose = prose.slice(0, maxChars).replace(/[，、；：,\s]+$/, '');
+    return { text: `${prose}...`, truncated: true };
+  }
+  return { text: prose, truncated: looksUpstreamTruncated };
 }

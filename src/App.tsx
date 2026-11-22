@@ -5,6 +5,7 @@ import { LoginDialog } from './components/LoginDialog';
 import { ShortcutsDialog } from './components/ShortcutsDialog';
 import { ToastProvider, useToast } from './components/Toast';
 import { TopBar } from './components/TopBar';
+import { ZhihuZenControls } from './components/ZhihuZenControls';
 import { useTapToPage } from './hooks/useTapToPage';
 import { BoardPage } from './pages/BoardPage';
 import { FavoritesPage } from './pages/FavoritesPage';
@@ -20,7 +21,8 @@ import { RouterProvider, useRouter } from './state/router';
 import { SettingsProvider, useSettings } from './state/settings';
 
 const THEME_LABEL = {
-  light: '日间灰阶',
+  light: '日间柔灰',
+  navy: '深海夜间',
   dark: '深灰夜间',
   oled: 'OLED 纯黑',
   system: '跟随系统',
@@ -48,6 +50,7 @@ function AppShell() {
 
   useTapToPage({
     enabled: prefs.tapToPage && route.name !== 'settings',
+    keyboardEnabled: route.name !== 'settings',
     zone: route.name === 'topic' ? 'full' : 'margin',
     fontSize: prefs.fontSize,
     routeKey,
@@ -167,6 +170,7 @@ function AppShell() {
         title={title}
         subtitle={subtitle}
         collapsible={route.name === 'topic'}
+        showListStyleToggle={route.name === 'home' || route.name === 'board'}
         onOpenDrawer={() => setDrawerOpen(true)}
         onOpenCommand={() => setCommandOpen(true)}
       />
@@ -174,10 +178,6 @@ function AppShell() {
       <main className="main-col">
         {route.name === 'home' ? (
           <HomePage onOpenCommand={() => setCommandOpen(true)} />
-        ) : route.name === 'favorites' ? (
-          <FavoritesPage />
-        ) : route.name === 'sections' ? (
-          <SectionsPage />
         ) : route.name === 'board' ? (
           <BoardPage
             key={route.boardId}
@@ -195,20 +195,30 @@ function AppShell() {
             initialPage={route.initialPage}
             onUpdateHeader={handleUpdateHeader}
           />
-        ) : route.name === 'messages' ? (
-          <MessagesPage />
-        ) : route.name === 'search' ? (
-          <SearchPage
-            key={`${route.initialKeyword || ''}:${route.initialBoard || ''}`}
-            initialKeyword={route.initialKeyword}
-            initialBoard={route.initialBoard}
-          />
-        ) : route.name === 'user' ? (
-          <UserPage key={route.username} username={route.username} />
         ) : (
-          <SettingsPage />
+          <div className="paper-sheet">
+            {route.name === 'favorites' ? (
+              <FavoritesPage />
+            ) : route.name === 'sections' ? (
+              <SectionsPage />
+            ) : route.name === 'messages' ? (
+              <MessagesPage />
+            ) : route.name === 'search' ? (
+              <SearchPage
+                key={`${route.initialKeyword || ''}:${route.initialBoard || ''}`}
+                initialKeyword={route.initialKeyword}
+                initialBoard={route.initialBoard}
+              />
+            ) : route.name === 'user' ? (
+              <UserPage key={route.username} username={route.username} />
+            ) : (
+              <SettingsPage />
+            )}
+          </div>
         )}
       </main>
+
+      <ZhihuZenControls />
 
       <LeftDrawer
         open={drawerOpen}

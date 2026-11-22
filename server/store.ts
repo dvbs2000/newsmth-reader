@@ -44,11 +44,15 @@ export interface CustomFontItem {
 }
 
 export interface UserPreferences {
-  theme: 'light' | 'dark' | 'oled' | 'system';
+  prefVersion?: number;
+  theme: 'light' | 'navy' | 'dark' | 'oled' | 'system';
   fontSize: number;
+  widthPct: number;
   colWidth: number;
   fontId: string;
   customSystemFont: string;
+  listStyle: 'feed' | 'compact';
+  boardListStyle: 'compact' | 'feed';
   tapToPage: boolean;
   imageMode: 'collapsed' | 'stealth' | 'auto';
   hideAvatars: boolean;
@@ -69,12 +73,18 @@ export interface LocalDataStore {
   preferences: UserPreferences;
 }
 
+const PREF_VERSION = 2;
+
 const DEFAULT_PREFERENCES: UserPreferences = {
-  theme: 'system',
-  fontSize: 15.5,
-  colWidth: 720,
+  prefVersion: PREF_VERSION,
+  theme: 'light',
+  fontSize: 16,
+  widthPct: 98,
+  colWidth: 980,
   fontId: 'system',
   customSystemFont: '',
+  listStyle: 'compact',
+  boardListStyle: 'compact',
   tapToPage: true,
   imageMode: 'collapsed',
   hideAvatars: true,
@@ -140,6 +150,22 @@ class LocalStore {
     };
 
     const loadedData = readJsonSafe<Partial<LocalDataStore>>(DATA_FILE, DEFAULT_DATA);
+    const rawPrefs = loadedData.preferences;
+    const needsV2Migration = !rawPrefs || rawPrefs.prefVersion !== PREF_VERSION;
+    const mergedPrefs: UserPreferences = needsV2Migration
+      ? {
+          ...DEFAULT_PREFERENCES,
+          ...(rawPrefs || {}),
+          prefVersion: PREF_VERSION,
+          widthPct: 98,
+          fontSize: 16,
+          fontId: 'system',
+          customSystemFont: '',
+          listStyle: 'compact',
+          boardListStyle: 'compact',
+        }
+      : { ...DEFAULT_PREFERENCES, ...rawPrefs };
+
     this.data = {
       localFavBoards: loadedData.localFavBoards || [],
       boardSearchHistory: loadedData.boardSearchHistory || [],
@@ -148,8 +174,12 @@ class LocalStore {
       blockUsers: loadedData.blockUsers || [],
       blockKeywords: loadedData.blockKeywords || [],
       customFonts: loadedData.customFonts || [],
-      preferences: { ...DEFAULT_PREFERENCES, ...(loadedData.preferences || {}) },
+      preferences: mergedPrefs,
     };
+
+    if (needsV2Migration && fs.existsSync(DATA_FILE)) {
+      this.saveData();
+    }
   }
 
   getWapSession(): SessionSlot {

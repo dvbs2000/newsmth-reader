@@ -5,6 +5,7 @@ import { parseCookieInput, serializeCookieHeader } from '../server/cookieParser.
 import { createApp } from '../server/index.js';
 import {
   buildQuotePrefix,
+  extractFeedExcerpt,
   parseArticleBody,
   splitLinks,
   stripHtmlTags,
@@ -94,6 +95,15 @@ test('parseArticleBody cleans HTML, folds quotes, strips client tails, and extra
   assert.equal(ismthParsed.segments[0].type, 'text');
   assert.equal(ismthParsed.segments[0].content, '再想想');
   assert.equal(ismthParsed.segments[1].type, 'quote');
+
+  // Feed excerpt strips inline `#发自zSMTH@...` tail and truncates cleanly
+  const shortEx = extractFeedExcerpt('n+2或者更新的制程，有人了解吗 #发自zSMTH@SM-F9560');
+  assert.equal(shortEx.text, 'n+2或者更新的制程，有人了解吗');
+  assert.equal(shortEx.truncated, false);
+
+  const longEx = extractFeedExcerpt('这是一段非常长的测试正文内容，'.repeat(15), 40);
+  assert.equal(longEx.truncated, true);
+  assert.ok(longEx.text.endsWith('...'));
 });
 
 test('BFF server routes health, SSRF image proxy block, cookie validation, and live hot/ten', async () => {

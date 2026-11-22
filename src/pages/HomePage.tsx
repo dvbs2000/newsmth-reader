@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUp, RefreshCw, Search } from 'lucide-react';
 import { api } from '../api/client';
+import { Lightbox } from '../components/Lightbox';
 import { LoadMoreSentinel } from '../components/LoadMoreSentinel';
 import { useToast } from '../components/Toast';
 import { TopicRow } from '../components/TopicRow';
@@ -38,8 +39,12 @@ const STALE_CHECK_MS = 30_000;
 
 export function HomePage({ onOpenCommand }: HomePageProps) {
   const { navigate, navigationType } = useRouter();
-  const { localData, isBlocked, recordBoardHistory } = useSettings();
+  const { prefs, localData, isBlocked, recordBoardHistory } = useSettings();
   const { showToast } = useToast();
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number }>({
+    images: [],
+    index: -1,
+  });
 
   const initialCache = useRef(
     navigationType === 'pop' ? getViewCache<HomeCache>(CACHE_KEY) : undefined,
@@ -314,67 +319,85 @@ export function HomePage({ onOpenCommand }: HomePageProps) {
 
   return (
     <div>
-      <button
-        type="button"
-        className="inline-search"
-        style={{ width: '100%', textAlign: 'left' }}
-        onClick={onOpenCommand}
-      >
-        <Search size={15} />
-        <span style={{ flex: 1, fontSize: '0.88rem' }}>直达版面或搜索全站帖子...</span>
-        <kbd className="kbd-hint">/</kbd>
-      </button>
-
-      {localData.boardSearchHistory.length > 0 ? (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '4px 0 4px' }}>
-          {localData.boardSearchHistory.slice(0, 6).map((b) => (
-            <button
-              key={b.id || b.name}
-              type="button"
-              className="board-pill"
-              onClick={() => openBoard(b.id, b.name, b.title)}
-            >
-              {b.title || b.name}
-            </button>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="subtabs">
-        {(
-          [
-            ['ten', '今日十大'],
-            ['global', '全站热帖'],
-            ['section', '分区热点'],
-            ['boards', '人气版面'],
-          ] as Array<[HomeTab, string]>
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            className={`subtab ${tab === key ? 'active' : ''}`}
-            onClick={() => {
-              if (tab === key) {
-                handleManualRefresh();
-              } else {
-                setTab(key);
-                window.scrollTo({ top: 0, behavior: 'instant' });
-              }
-            }}
-          >
-            {label}
-          </button>
-        ))}
-        <div className="subtabs-spacer" />
+      <div className="feed-header-card">
         <button
           type="button"
-          className="icon-btn"
-          title="刷新最新 (U)"
-          aria-label="刷新列表"
-          onClick={handleManualRefresh}
+          className="inline-search"
+          style={{ width: '100%', textAlign: 'left' }}
+          onClick={onOpenCommand}
         >
-          <RefreshCw size={15} />
+          <Search size={15} />
+          <span style={{ flex: 1, fontSize: '0.88rem' }}>直达版面或搜索全站帖子...</span>
+          <kbd className="kbd-hint">/</kbd>
         </button>
+
+        {localData.boardSearchHistory.length > 0 ? (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 0 6px' }}>
+            {localData.boardSearchHistory.slice(0, 6).map((b) => (
+              <button
+                key={b.id || b.name}
+                type="button"
+                className="board-pill"
+                onClick={() => openBoard(b.id, b.name, b.title)}
+              >
+                {b.title || b.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="subtabs">
+          {(
+            [
+              ['ten', '今日十大'],
+              ['global', '全站热帖'],
+              ['section', '分区热点'],
+              ['boards', '人气版面'],
+            ] as Array<[HomeTab, string]>
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              className={`subtab ${tab === key ? 'active' : ''}`}
+              onClick={() => {
+                if (tab === key) {
+                  handleManualRefresh();
+                } else {
+                  setTab(key);
+                  window.scrollTo({ top: 0, behavior: 'instant' });
+                }
+              }}
+            >
+              {label}
+            </button>
+          ))}
+          <div className="subtabs-spacer" />
+          <button
+            type="button"
+            className="icon-btn"
+            title="刷新最新 (U)"
+            aria-label="刷新列表"
+            onClick={handleManualRefresh}
+          >
+            <RefreshCw size={15} />
+          </button>
+        </div>
+
+        {tab === 'section' && sections.length > 0 ? (
+          <div className="subtabs" style={{ padding: '6px 0 2px', borderTop: '1px solid var(--border)', marginTop: 4 }}>
+            {sections.map((sec) => (
+              <button
+                key={sec.id}
+                type="button"
+                className={`subtab ${selectedSectionId === sec.id ? 'active' : ''}`}
+                style={{ fontSize: '0.8rem', padding: '3px 9px' }}
+                onClick={() => setSelectedSectionId(sec.id)}
+              >
+                {sec.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {newPostCount > 0 ? (
@@ -383,22 +406,6 @@ export function HomePage({ onOpenCommand }: HomePageProps) {
             <ArrowUp size={13} />
             <span>有新动态（约 {newPostCount} 条）· 点击刷新</span>
           </button>
-        </div>
-      ) : null}
-
-      {tab === 'section' && sections.length > 0 ? (
-        <div className="subtabs" style={{ padding: '6px 0' }}>
-          {sections.map((sec) => (
-            <button
-              key={sec.id}
-              type="button"
-              className={`subtab ${selectedSectionId === sec.id ? 'active' : ''}`}
-              style={{ fontSize: '0.8rem', padding: '3px 9px' }}
-              onClick={() => setSelectedSectionId(sec.id)}
-            >
-              {sec.name}
-            </button>
-          ))}
         </div>
       ) : null}
 
@@ -412,36 +419,52 @@ export function HomePage({ onOpenCommand }: HomePageProps) {
       ) : null}
 
       {loading ? (
-        <div>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="skeleton-row">
-              <div className="skeleton-bar" style={{ width: `${65 + (i % 3) * 10}%` }} />
-              <div className="skeleton-bar short" />
-            </div>
-          ))}
-        </div>
+        prefs.listStyle === 'compact' ? (
+          <div className="paper-sheet">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="skeleton-row">
+                <div className="skeleton-bar" style={{ width: `${52 + (i % 4) * 10}%` }} />
+                <div className="skeleton-bar short" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-bar" style={{ width: `${58 + (i % 3) * 12}%` }} />
+                <div className="skeleton-bar short" style={{ width: '90%' }} />
+                <div className="skeleton-bar short" />
+              </div>
+            ))}
+          </div>
+        )
       ) : tab === 'boards' ? (
-        <div className="board-grid">
-          {boards.map((b) => (
-            <button
-              key={b.id}
-              type="button"
-              className="board-card"
-              onClick={() => openBoard(b.id, b.name, b.title || b.name)}
-            >
-              <span className="board-card-title">{b.title || b.name}</span>
-              <span className="board-card-name">
-                {b.name}
-                {b.popularity ? ` · 热度 ${b.popularity}` : ''}
-              </span>
-            </button>
-          ))}
+        <div className="paper-sheet" style={{ paddingTop: 14 }}>
+          <div className="board-grid" style={{ marginTop: 0 }}>
+            {boards.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                className="board-card"
+                onClick={() => openBoard(b.id, b.name, b.title || b.name)}
+              >
+                <span className="board-card-title">{b.title || b.name}</span>
+                <span className="board-card-name">
+                  {b.name}
+                  {b.popularity ? ` · 热度 ${b.popularity}` : ''}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       ) : visibleTopics.length === 0 ? (
-        <div className="empty-state">暂无帖子</div>
+        <div className="paper-sheet">
+          <div className="empty-state">暂无帖子</div>
+        </div>
       ) : (
         <>
-          <ul className="feed-list">
+          <ul className={`feed-list ${prefs.listStyle === 'compact' ? 'compact-sheet' : ''}`}>
             {visibleTopics.map((topic, idx) => (
               <TopicRow
                 key={topic.id}
@@ -449,8 +472,10 @@ export function HomePage({ onOpenCommand }: HomePageProps) {
                 rank={tab === 'ten' ? idx + 1 : undefined}
                 read={Boolean(localData.readTopics[topic.id])}
                 focused={idx === focusIdx || (focusIdx === -1 && topic.id === lastTopicId)}
+                listStyle={prefs.listStyle}
                 onOpenTopic={openTopic}
                 onOpenBoard={openBoard}
+                onOpenLightbox={(images, index) => setLightbox({ images, index })}
               />
             ))}
           </ul>
@@ -465,6 +490,13 @@ export function HomePage({ onOpenCommand }: HomePageProps) {
           ) : null}
         </>
       )}
+
+      <Lightbox
+        images={lightbox.images}
+        index={lightbox.index}
+        onChangeIndex={(next) => setLightbox((prev) => ({ ...prev, index: next }))}
+        onClose={() => setLightbox({ images: [], index: -1 })}
+      />
     </div>
   );
 }

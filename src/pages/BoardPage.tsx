@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUp, ArrowUpDown, PenSquare, RefreshCw, Search, Star } from 'lucide-react';
 import { api } from '../api/client';
 import { ComposerDialog, type ComposerMode } from '../components/ComposerDialog';
+import { Lightbox } from '../components/Lightbox';
 import { LoadMoreSentinel } from '../components/LoadMoreSentinel';
 import { TopicRow } from '../components/TopicRow';
 import { useToast } from '../components/Toast';
@@ -47,8 +48,12 @@ export function BoardPage({
 }: BoardPageProps) {
   const { navigate, navigationType } = useRouter();
   const { status, openLoginDialog } = useAuth();
-  const { localData, isBlocked, toggleLocalFavBoard } = useSettings();
+  const { prefs, localData, isBlocked, toggleLocalFavBoard } = useSettings();
   const { showToast } = useToast();
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number }>({
+    images: [],
+    index: -1,
+  });
 
   const cacheKey = `board:${boardId}`;
   const initialCache = useRef(
@@ -350,85 +355,87 @@ export function BoardPage({
 
   return (
     <div>
-      <div className="thread-controls" style={{ paddingTop: 12 }}>
-        <button type="button" className="chip-btn primary" onClick={openNewTopic} title="发表新帖 (N)">
-          <PenSquare size={14} />
-          发新帖
-        </button>
+      <div className="feed-header-card">
+        <div className="thread-controls" style={{ paddingTop: 2, borderBottom: 'none', paddingBottom: 8 }}>
+          <button type="button" className="chip-btn primary" onClick={openNewTopic} title="发表新帖 (N)">
+            <PenSquare size={14} />
+            发新帖
+          </button>
 
-        <button
-          type="button"
-          className={`chip-btn ${starred ? 'active' : ''}`}
-          onClick={() => void handleToggleFav()}
-        >
-          <Star size={14} fill={starred ? 'currentColor' : 'none'} />
-          {starred ? '已收藏' : '收藏版面'}
-        </button>
+          <button
+            type="button"
+            className={`chip-btn ${starred ? 'active' : ''}`}
+            onClick={() => void handleToggleFav()}
+          >
+            <Star size={14} fill={starred ? 'currentColor' : 'none'} />
+            {starred ? '已收藏' : '收藏版面'}
+          </button>
 
-        <button
-          type="button"
-          className="chip-btn"
-          onClick={() => setOrder((o) => (o === 1 ? 0 : 1))}
-        >
-          <ArrowUpDown size={13} />
-          {order === 1 ? '按回复刷新' : '按发帖时间'}
-        </button>
-
-        {board?.name ? (
           <button
             type="button"
             className="chip-btn"
-            onClick={() => navigate({ name: 'search', initialBoard: board.name })}
+            onClick={() => setOrder((o) => (o === 1 ? 0 : 1))}
           >
-            <Search size={13} />
-            版内搜索
+            <ArrowUpDown size={13} />
+            {order === 1 ? '按回复刷新' : '按发帖时间'}
           </button>
-        ) : null}
 
-        <button
-          type="button"
-          className="icon-btn"
-          style={{ marginLeft: 'auto' }}
-          title="刷新最新 (U)"
-          aria-label="刷新版面"
-          onClick={handleManualRefresh}
-        >
-          <RefreshCw size={15} />
-        </button>
-      </div>
+          {board?.name ? (
+            <button
+              type="button"
+              className="chip-btn"
+              onClick={() => navigate({ name: 'search', initialBoard: board.name })}
+            >
+              <Search size={13} />
+              版内搜索
+            </button>
+          ) : null}
 
-      <div className="subtabs">
-        {(
-          [
-            ['normal', '主题列表'],
-            ['tops', '置顶'],
-            ['essence', '精华'],
-          ] as Array<[BoardTab, string]>
-        ).map(([k, label]) => (
           <button
-            key={k}
             type="button"
-            className={`subtab ${tab === k ? 'active' : ''}`}
-            onClick={() => {
-              if (tab === k) {
-                handleManualRefresh();
-              } else {
-                setTab(k);
-                window.scrollTo({ top: 0, behavior: 'instant' });
-              }
-            }}
+            className="icon-btn"
+            style={{ marginLeft: 'auto' }}
+            title="刷新最新 (U)"
+            aria-label="刷新版面"
+            onClick={handleManualRefresh}
           >
-            {label}
+            <RefreshCw size={15} />
           </button>
-        ))}
-        {board?.todayPostCount !== undefined ? (
-          <span
-            className="tabular"
-            style={{ marginLeft: 'auto', fontSize: '0.76rem', color: 'var(--text-muted)' }}
-          >
-            今日 {board.todayPostCount} 帖
-          </span>
-        ) : null}
+        </div>
+
+        <div className="subtabs" style={{ borderTop: '1px solid var(--border)', paddingTop: 6 }}>
+          {(
+            [
+              ['normal', '主题列表'],
+              ['tops', '置顶'],
+              ['essence', '精华'],
+            ] as Array<[BoardTab, string]>
+          ).map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              className={`subtab ${tab === k ? 'active' : ''}`}
+              onClick={() => {
+                if (tab === k) {
+                  handleManualRefresh();
+                } else {
+                  setTab(k);
+                  window.scrollTo({ top: 0, behavior: 'instant' });
+                }
+              }}
+            >
+              {label}
+            </button>
+          ))}
+          {board?.todayPostCount !== undefined ? (
+            <span
+              className="tabular"
+              style={{ marginLeft: 'auto', fontSize: '0.76rem', color: 'var(--text-subtle)' }}
+            >
+              今日 {board.todayPostCount} 帖
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {newPostCount > 0 ? (
@@ -443,19 +450,35 @@ export function BoardPage({
       {error ? <div className="error-banner">{error}</div> : null}
 
       {loading ? (
-        <div>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="skeleton-row">
-              <div className="skeleton-bar" style={{ width: `${60 + (i % 4) * 9}%` }} />
-              <div className="skeleton-bar short" />
-            </div>
-          ))}
-        </div>
+        prefs.boardListStyle === 'compact' ? (
+          <div className="paper-sheet">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="skeleton-row">
+                <div className="skeleton-bar" style={{ width: `${52 + (i % 4) * 10}%` }} />
+                <div className="skeleton-bar short" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-bar" style={{ width: `${58 + (i % 3) * 12}%` }} />
+                <div className="skeleton-bar short" style={{ width: '90%' }} />
+                <div className="skeleton-bar short" />
+              </div>
+            ))}
+          </div>
+        )
       ) : visibleTopics.length === 0 ? (
-        <div className="empty-state">暂无帖子</div>
+        <div className="paper-sheet">
+          <div className="empty-state">暂无帖子</div>
+        </div>
       ) : (
         <>
-          <ul className="feed-list">
+          <ul
+            className={`feed-list ${prefs.boardListStyle === 'compact' ? 'compact-sheet' : ''}`}
+          >
             {visibleTopics.map((topic, idx) => (
               <TopicRow
                 key={topic.id}
@@ -464,7 +487,9 @@ export function BoardPage({
                 showBoard={false}
                 read={Boolean(localData.readTopics[topic.id])}
                 focused={idx === focusIdx || (focusIdx === -1 && topic.id === lastTopicId)}
+                listStyle={prefs.boardListStyle}
                 onOpenTopic={openTopic}
+                onOpenLightbox={(images, index) => setLightbox({ images, index })}
               />
             ))}
           </ul>
@@ -482,6 +507,13 @@ export function BoardPage({
         mode={composer}
         onClose={() => setComposer(null)}
         onSuccess={() => void loadInitial()}
+      />
+
+      <Lightbox
+        images={lightbox.images}
+        index={lightbox.index}
+        onChangeIndex={(next) => setLightbox((prev) => ({ ...prev, index: next }))}
+        onClose={() => setLightbox({ images: [], index: -1 })}
       />
     </div>
   );

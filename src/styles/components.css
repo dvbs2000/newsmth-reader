@@ -1,4 +1,4 @@
-/* Single-column minimalist layout & xsmth components */
+/* Single-column Zhihu-Zen paper cards & minimalist reading components */
 
 .app-shell {
   min-height: 100dvh;
@@ -6,66 +6,102 @@
   flex-direction: column;
 }
 
-/* Sticky minimalist topbar */
+/* Non-sticky Zhihu Zen rounded card topbar (scrolls away naturally so reading stays 100% full-height) */
 .topbar {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 30;
-  height: var(--topbar-height);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
+  width: var(--content-width);
+  max-width: 100%;
+  margin: 10px auto 4px;
+  min-height: var(--topbar-height);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
 }
 
 .topbar.topbar-floating {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 40;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  width: min(var(--content-width), calc(100vw - 16px));
+  z-index: 45;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--panel-shadow);
 }
 
-/* Minimalist floating dot anchored at top-left viewport vertex for immersive reading */
+/* Ultra-minimalist 6px transparent micro-dot anchored at top-left viewport vertex (navigation bar reveal) */
 .topbar-dot {
   position: fixed;
-  top: 4px;
-  left: 4px;
-  z-index: 40;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
+  top: 0;
+  left: 0;
+  z-index: 44;
+  width: 24px;
+  height: 24px;
+  padding: 5px;
   background: transparent;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 160ms var(--ease-ui), transform 160ms var(--ease-ui);
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .topbar-dot-core {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--text-muted);
-  opacity: 0.22;
-  transition: opacity 160ms var(--ease-ui), transform 160ms var(--ease-ui);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-subtle);
+  opacity: 0.25;
+  transition: opacity 0.15s, transform 0.15s, background-color 0.15s;
 }
 
 .topbar-dot:hover .topbar-dot-core,
 .topbar-dot:focus-visible .topbar-dot-core {
-  opacity: 0.78;
-  transform: scale(1.25);
+  opacity: 0.9;
+  background: var(--accent);
+  transform: scale(1.4);
 }
 
 .topbar-inner {
-  max-width: var(--col-width);
-  height: 100%;
-  margin: 0 auto;
-  padding: 0 14px;
+  width: 100%;
+  min-height: var(--topbar-height);
+  padding: 6px var(--card-pad-x);
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.zen-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.zen-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.zen-nav-link:hover,
+.zen-nav-link.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .topbar-title-group {
@@ -78,6 +114,7 @@
 
 .topbar-title {
   margin: 0;
+  font-family: var(--font-ui);
   font-size: 0.96rem;
   font-weight: 600;
   color: var(--text);
@@ -87,8 +124,9 @@
 }
 
 .topbar-subtitle {
-  font-size: 0.78rem;
-  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  color: var(--text-subtle);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -134,14 +172,40 @@
   background: var(--accent);
 }
 
-/* Main centered reading column */
+/* Main centered reading column — exact Zhihu Zen percentage width (default 98%) */
 .main-col {
-  width: 100%;
-  max-width: var(--col-width);
+  width: var(--content-width);
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 14px 72px;
+  padding: 6px 0 64px;
   flex: 1;
   overflow-anchor: none;
+}
+
+/* Pure e-book instant crispness inside reading area (matches zhihu_zen_extension/styles.css:69-75) */
+.main-col .floor-card,
+.main-col .floor-card *,
+.main-col .topic-row,
+.main-col .feed-card {
+  transition: none;
+}
+
+/* White paper container for non-feed pages (Favorites, Sections, Settings, etc.) */
+.paper-sheet {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--card-shadow);
+  padding: 8px var(--card-pad-x) 24px;
+}
+
+.feed-header-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--card-shadow);
+  padding: 10px var(--card-pad-x) 8px;
+  margin-bottom: 10px;
 }
 
 /* Sub-navigation segmented tabs */
@@ -149,8 +213,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 10px 0 8px;
-  border-bottom: 1px solid var(--border);
+  padding: 4px 0 2px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -162,6 +225,7 @@
 .subtab {
   padding: 5px 11px;
   border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
   font-size: 0.85rem;
   color: var(--text-muted);
   white-space: nowrap;
@@ -174,9 +238,9 @@
 }
 
 .subtab.active {
-  color: var(--text);
+  color: var(--accent);
   font-weight: 600;
-  background: var(--surface-subtle);
+  background: var(--accent-soft);
 }
 
 .subtabs-spacer {
@@ -188,7 +252,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 0 6px;
+  margin: 0 0 8px;
   padding: 7px 11px;
   border-radius: var(--radius-sm);
   background: var(--surface-subtle);
@@ -213,7 +277,7 @@
 }
 
 .inline-search input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-subtle);
 }
 
 .kbd-hint {
@@ -222,26 +286,175 @@
   padding: 1px 6px;
   border-radius: 4px;
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: var(--text-subtle);
   background: var(--surface);
 }
 
-/* Topic feed rows (authentic xsmth hairline list) */
+/* ============================================================
+   Zhihu-Zen Rich Excerpt Feed Cards (Default List Mode)
+   ============================================================ */
 .feed-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
+.feed-list.compact-sheet {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--card-shadow);
+  padding: 4px var(--card-pad-x);
+}
+
+.feed-card {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--card-shadow);
+  padding: 18px var(--card-pad-x) 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 240px;
+}
+
+.feed-card.focused {
+  border-color: var(--accent);
+}
+
+.feed-card-title-btn {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 8px;
+}
+
+.feed-card-title {
+  margin: 0;
+  flex: 1;
+  font-family: var(--font-reading);
+  font-size: calc(var(--font-size-body) + 3px);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.feed-card-title-btn:hover .feed-card-title {
+  color: var(--accent);
+}
+
+.feed-card.read .feed-card-title {
+  color: var(--text-read);
+}
+
+.feed-card-excerpt {
+  font-family: var(--font-reading);
+  font-size: var(--font-size-body);
+  line-height: 1.8;
+  color: var(--text);
+  margin: 0 0 12px;
+  word-break: break-word;
+  cursor: pointer;
+}
+
+.feed-card.read .feed-card-excerpt {
+  color: var(--text-muted);
+}
+
+.feed-excerpt-author {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.feed-read-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.88em;
+  color: var(--accent);
+  vertical-align: baseline;
+}
+
+.feed-read-more:hover {
+  text-decoration: underline;
+}
+
+.feed-expanded-body {
+  font-family: var(--font-reading);
+  font-size: var(--font-size-body);
+  line-height: 1.8;
+  color: var(--text);
+  margin: 0 0 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.feed-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Signature soft pale-blue Zhihu-Zen pill */
+.vote-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: background-color 140ms var(--ease-ui);
+}
+
+.vote-pill:hover {
+  background: var(--accent-soft-hover);
+}
+
+.feed-action-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-subtle);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  padding: 3px 2px;
+  transition: color 140ms var(--ease-ui);
+}
+
+.feed-action-item:hover {
+  color: var(--text);
+}
+
+/* Compact list mode rows — crisp Zhihu Zen typography on pure white sheet */
 .topic-row {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 13px 6px;
+  gap: 3px;
+  padding: 10px 6px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   border-radius: 4px;
-  transition: background-color 140ms var(--ease-ui);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 56px;
+}
+
+.topic-row:last-child {
+  border-bottom: none;
 }
 
 .topic-row:hover {
@@ -261,9 +474,10 @@
 .topic-rank {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  width: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-subtle);
+  width: 24px;
   flex-shrink: 0;
   padding-top: 2px;
 }
@@ -272,23 +486,24 @@
   margin: 0;
   flex: 1;
   font-family: var(--font-reading);
-  font-size: var(--font-size-body);
-  font-weight: 400;
-  line-height: 1.46;
+  font-size: calc(var(--font-size-body) + 0.5px);
+  font-weight: 600;
+  line-height: 1.48;
   color: var(--text);
   word-break: break-word;
 }
 
 .topic-row.read .topic-title {
   color: var(--text-read);
+  font-weight: 500;
 }
 
 .topic-tag {
   font-family: var(--font-ui);
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   color: var(--accent);
   margin-right: 6px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .topic-meta {
@@ -297,34 +512,34 @@
   flex-wrap: wrap;
   gap: 8px;
   font-family: var(--font-ui);
-  font-size: 0.72rem;
+  font-size: 13px;
   color: var(--text-subtle);
   font-variant-numeric: tabular-nums;
 }
 
 .topic-meta.indented {
-  padding-left: 28px;
+  padding-left: 32px;
 }
 
 .board-pill {
   font-family: var(--font-ui);
-  color: var(--text-muted);
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--surface-subtle);
-  font-size: 0.71rem;
-  transition: color 140ms var(--ease-ui);
+  color: var(--accent);
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-size: 12.5px;
+  font-weight: 500;
 }
 
 .board-pill:hover {
-  color: var(--accent);
+  background: var(--accent-soft-hover);
   text-decoration: none;
 }
 
 /* Zero-layout-shift floating new-posts alert pill */
 .new-posts-anchor {
   position: sticky;
-  top: 56px;
+  top: 12px;
   z-index: 25;
   height: 0;
   overflow: visible;
@@ -335,15 +550,15 @@
 
 .new-posts-pill {
   pointer-events: auto;
-  height: 28px;
-  padding: 0 12px;
+  height: 30px;
+  padding: 0 14px;
   border-radius: 999px;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   color: var(--accent);
   font-family: var(--font-ui);
-  font-size: 0.76rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  font-size: 0.78rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -351,22 +566,31 @@
 }
 
 .new-posts-pill:hover {
-  background: var(--surface-subtle);
+  background: var(--accent-soft);
   transform: translateY(-1px);
 }
 
-/* Thread page */
+/* Thread page — tight, content-dense Zhihu reading rhythm */
+.thread-header-card {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--card-shadow);
+  padding: 12px var(--card-pad-x) 9px;
+  margin-bottom: 6px;
+}
+
 .thread-header {
-  padding: 16px 0 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 0 0 8px;
 }
 
 .thread-subject {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-family: var(--font-reading);
-  font-size: 1.24rem;
-  font-weight: 600;
-  line-height: 1.42;
+  font-size: calc(var(--font-size-body) + 5px);
+  font-weight: 700;
+  line-height: 1.36;
   color: var(--text);
   word-break: break-word;
 }
@@ -378,7 +602,7 @@
   flex-wrap: wrap;
   gap: 8px;
   font-family: var(--font-ui);
-  font-size: 0.74rem;
+  font-size: 13px;
   color: var(--text-subtle);
 }
 
@@ -386,8 +610,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 8px 0 0;
+  border-top: 1px solid var(--border);
   flex-wrap: wrap;
 }
 
@@ -395,36 +619,42 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 30px;
+  height: 27px;
   padding: 0 10px;
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   border: 1px solid var(--border);
-  font-size: 0.8rem;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--text-muted);
-  background: var(--surface);
-  transition: background-color 140ms var(--ease-ui), color 140ms var(--ease-ui),
-    border-color 140ms var(--ease-ui);
+  background: var(--bg);
+  white-space: nowrap;
 }
 
 .chip-btn:hover {
-  color: var(--text);
-  background: var(--surface-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .chip-btn.active {
   color: var(--accent);
   border-color: var(--accent);
   background: var(--accent-soft);
+  font-weight: 600;
 }
 
 .chip-btn.primary {
-  background: var(--text);
-  color: var(--bg);
-  border-color: var(--text);
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  font-weight: 600;
 }
 
 .chip-btn.primary:hover {
-  opacity: 0.88;
+  opacity: 0.9;
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .chip-btn.danger {
@@ -432,19 +662,23 @@
   border-color: var(--danger-soft);
 }
 
-/* Likes (亮评) block */
+/* Likes (亮评) card — compact high-density highlights card */
 .likes-box {
-  margin: 12px 0 4px;
-  padding: 10px 12px;
-  background: var(--surface-subtle);
-  border-radius: var(--radius-sm);
-  border-left: 2px solid var(--border-strong);
+  margin: 0 0 6px;
+  padding: 9px var(--card-pad-x);
+  background: var(--surface);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  box-shadow: var(--card-shadow);
 }
 
 .likes-title {
-  font-size: 0.76rem;
-  color: var(--text-muted);
-  margin-bottom: 6px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 4px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -454,8 +688,8 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding: 4px 0;
-  font-size: 0.86rem;
+  padding: 3px 0;
+  font-size: 13.5px;
   line-height: 1.5;
   border-top: 1px solid var(--border);
 }
@@ -466,42 +700,48 @@
 
 .like-score {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--accent);
   flex-shrink: 0;
 }
 
 .like-author {
-  font-size: 0.78rem;
-  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  color: var(--text-subtle);
   flex-shrink: 0;
 }
 
 .like-msg {
+  font-family: var(--font-reading);
   color: var(--text);
   word-break: break-word;
 }
 
-/* Thread floor card — editorial prose-first hierarchy */
+/* Thread floor card — crisp independent Zhihu card calibrated for fast BBS scanning */
 .floor-card {
-  padding: 11px 6px 12px;
-  border-bottom: 1px solid var(--border);
+  width: 100%;
+  background: var(--surface);
+  border-radius: 6px;
+  box-shadow: var(--card-shadow);
+  padding: 11px var(--card-pad-x);
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
   content-visibility: auto;
-  contain-intrinsic-size: auto 110px;
-  border-radius: 4px;
-  transition: background-color 140ms var(--ease-ui);
+  contain-intrinsic-size: auto 100px;
 }
 
 .floor-card.focused {
-  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 
 .floor-head {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 5px;
-  min-height: 19px;
+  min-height: 20px;
   font-family: var(--font-ui);
 }
 
@@ -513,9 +753,9 @@
 }
 
 .floor-avatar {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
   object-fit: cover;
   background: var(--surface-subtle);
   flex-shrink: 0;
@@ -523,9 +763,9 @@
 
 .floor-author {
   font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -536,42 +776,40 @@
 
 .floor-nick {
   font-family: var(--font-ui);
-  font-size: 0.71rem;
+  font-size: 12.5px;
   color: var(--text-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 150px;
+  max-width: 220px;
 }
 
 .op-mark {
   font-family: var(--font-ui);
-  font-size: 0.66rem;
-  padding: 0 4px;
-  line-height: 1.5;
-  border-radius: 3px;
+  font-size: 11.5px;
+  padding: 1px 6px;
+  line-height: 1.4;
+  border-radius: 4px;
   color: var(--accent);
   background: var(--accent-soft);
-  font-weight: 500;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
-/* Inline hover actions inside header — zero vertical bloat when reading */
+/* Inline hover-reveal actions inside header row — zero vertical bloat on short replies */
 .floor-hover-actions {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 140ms var(--ease-ui);
   flex-shrink: 0;
 }
 
 .floor-card:hover .floor-hover-actions,
 .floor-card:focus-within .floor-hover-actions,
-.floor-card.focused .floor-hover-actions,
-.floor-hover-actions.pinned {
+.floor-card.focused .floor-hover-actions {
   opacity: 1;
   pointer-events: auto;
 }
@@ -579,11 +817,22 @@
 .floor-right-meta {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-family: var(--font-ui);
-  font-size: 0.71rem;
+  font-size: 12.5px;
   color: var(--text-subtle);
   flex-shrink: 0;
+}
+
+.floor-rank-badge {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-subtle);
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
 }
 
 .floor-meta-sep {
@@ -603,26 +852,112 @@
 .floor-body {
   font-family: var(--font-reading);
   font-size: var(--font-size-body);
-  line-height: 1.72;
+  line-height: 1.66;
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .floor-paragraph {
-  margin: 0 0 8px;
+  margin: 0 0 0.45em 0;
 }
 
 .floor-paragraph:last-child {
   margin-bottom: 0;
 }
 
-/* Compact collapsible quote block */
-.quote-block {
-  margin: 5px 0 0;
-  border-left: 2px solid var(--border);
-  padding-left: 8px;
-  color: var(--text-quote);
+/* Compact OP footer action bar (Zhihu blue vote pill) */
+.floor-actions-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  font-family: var(--font-ui);
+}
+
+.floor-vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: none;
+  padding: 4px 11px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.floor-vote-btn:hover {
+  background: var(--accent-soft-hover);
+}
+
+.floor-vote-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.floor-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  color: var(--text-subtle);
+  border: 1px solid transparent;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.floor-action-btn:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.floor-action-btn.danger:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.floor-mobile-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+@media (hover: none), (max-width: 640px) {
+  .floor-hover-actions {
+    display: none;
+  }
+
+  .floor-more-btn {
+    display: inline-flex;
+  }
+}
+
+/* Quote block: ultra-light single line when collapsed, full Zhihu quote box when expanded */
+.quote-block.collapsed {
+  margin: 4px 0 0;
+  padding: 0;
+  border-left: none;
+  background: transparent;
+}
+
+.quote-block.expanded {
+  margin: 6px 0 2px;
+  border-left: 3px solid var(--text-subtle);
+  background: var(--quote-bg);
+  padding: 7px 12px;
+  border-radius: 0 4px 4px 0;
+  color: var(--text-muted);
 }
 
 .quote-toggle {
@@ -631,25 +966,25 @@
   gap: 3px;
   font-family: var(--font-ui);
   color: var(--text-subtle);
-  font-size: 0.72rem;
+  font-size: 12.5px;
   line-height: 1.4;
   padding: 1px 0;
 }
 
 .quote-toggle:hover {
-  color: var(--text-muted);
+  color: var(--accent);
 }
 
 .quote-content {
-  margin-top: 3px;
+  margin-top: 5px;
   font-family: var(--font-reading);
-  font-size: 0.85em;
-  color: var(--text-quote);
+  font-size: 0.9em;
+  color: var(--text-muted);
   white-space: pre-wrap;
-  line-height: 1.56;
+  line-height: 1.58;
 }
 
-/* Stealth image controls (摸鱼控图) */
+/* Stealth image controls */
 .floor-images {
   display: flex;
   flex-wrap: wrap;
@@ -666,7 +1001,8 @@
   border: 1px dashed var(--border-strong);
   background: var(--surface-subtle);
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
   transition: border-color 140ms var(--ease-ui), color 140ms var(--ease-ui);
 }
 
@@ -715,64 +1051,16 @@
   object-fit: contain;
 }
 
-.floor-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 10px;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-
-.floor-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-family: var(--font-ui);
-  font-size: 0.71rem;
-  color: var(--text-subtle);
-  padding: 1px 4px;
-  border-radius: 4px;
-  white-space: nowrap;
-  transition: color 140ms var(--ease-ui), background-color 140ms var(--ease-ui);
-}
-
-.floor-action-btn:hover {
-  color: var(--text);
-  background: var(--surface-subtle);
-}
-
-.floor-action-btn.danger:hover {
-  color: var(--danger);
-}
-
-.floor-mobile-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 6px;
-  padding-top: 4px;
-}
-
-@media (hover: none), (max-width: 640px) {
-  .floor-hover-actions {
-    display: none;
-  }
-
-  .floor-more-btn {
-    display: inline-flex;
-  }
-}
-
 /* Pagination */
 .pager {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 20px 0 8px;
-  font-size: 0.84rem;
-  color: var(--text-muted);
+  padding: 18px 0 8px;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--text-subtle);
 }
 
 .pager-info {
@@ -781,7 +1069,7 @@
   padding: 0 6px;
 }
 
-/* Left slide-out drawer (authentic xsmth navigation) */
+/* Left slide-out drawer */
 .drawer-backdrop {
   position: fixed;
   inset: 0;
@@ -827,7 +1115,7 @@
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-subtle);
   margin-bottom: 10px;
 }
 
@@ -846,7 +1134,7 @@
 
 .drawer-usernick {
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--text-subtle);
 }
 
 .drawer-nav {
@@ -878,8 +1166,8 @@
 }
 
 .drawer-item.active {
-  background: var(--surface-subtle);
-  color: var(--text);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -900,7 +1188,7 @@
   align-items: center;
   justify-content: space-between;
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--text-subtle);
 }
 
 /* Dialog internals */
@@ -988,24 +1276,13 @@
 
 .btn-primary {
   background: var(--text);
-  color: var(--bg);
+  color: var(--surface);
   border-color: var(--text);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--text);
   opacity: 0.88;
-}
-
-.btn-accent {
-  background: var(--accent);
-  color: #ffffff;
-  border-color: var(--accent);
-}
-
-.btn-accent:hover:not(:disabled) {
-  background: var(--accent);
-  opacity: 0.9;
 }
 
 .btn-danger {
@@ -1015,10 +1292,10 @@
 
 /* Settings & structured lists */
 .section-heading {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: var(--text-subtle);
   margin: 22px 0 8px;
 }
 
@@ -1043,7 +1320,7 @@
 
 .setting-desc {
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--text-subtle);
   margin-top: 2px;
 }
 
@@ -1060,11 +1337,12 @@
   border-radius: 4px;
   font-size: 0.8rem;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .segmented button.active {
   background: var(--surface);
-  color: var(--text);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -1097,7 +1375,7 @@ dialog.lightbox-dialog {
 .empty-state {
   padding: 48px 16px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--text-subtle);
   font-size: 0.9rem;
 }
 
@@ -1114,22 +1392,30 @@ dialog.lightbox-dialog {
   gap: 8px;
 }
 
+.skeleton-card {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--card-shadow);
+  padding: 18px 22px;
+  margin-bottom: 10px;
+}
+
 .skeleton-row {
   padding: 14px 4px;
   border-bottom: 1px solid var(--border);
 }
 
 .skeleton-bar {
-  height: 14px;
+  height: 15px;
   border-radius: 4px;
   background: var(--surface-subtle);
   animation: pulse 1.3s ease-in-out infinite;
 }
 
 .skeleton-bar.short {
-  width: 42%;
-  height: 10px;
-  margin-top: 8px;
+  width: 44%;
+  height: 11px;
+  margin-top: 10px;
 }
 
 @keyframes pulse {
@@ -1156,15 +1442,15 @@ dialog.lightbox-dialog {
   padding: 8px 14px;
   border-radius: 999px;
   background: var(--text);
-  color: var(--bg);
+  color: var(--surface);
   font-size: 0.82rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
 }
 
 /* Sections & board grid */
 .board-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
   gap: 8px;
   margin-top: 10px;
 }
@@ -1194,7 +1480,7 @@ dialog.lightbox-dialog {
 
 .board-card-name {
   font-size: 0.76rem;
-  color: var(--text-muted);
+  color: var(--text-subtle);
   font-family: var(--font-mono);
 }
 
@@ -1212,12 +1498,203 @@ dialog.lightbox-dialog {
   border-color: var(--border-strong);
 }
 
+/* ============================================================
+   Zhihu Zen Right-Corner 6px Micro-Dots & 340px Floating Panel
+   (1:1 port of zhihu_zen_extension/styles.css:363-550)
+   ============================================================ */
+.zh-zen-dot-btn {
+  position: fixed;
+  right: 0;
+  z-index: 60;
+  width: 24px;
+  height: 24px;
+  padding: 5px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.zh-zen-dot-btn.top-right {
+  top: 0;
+  align-items: flex-start;
+}
+
+.zh-zen-dot-btn.bottom-right {
+  bottom: 0;
+  align-items: flex-end;
+}
+
+.zh-zen-dot-btn::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-subtle);
+  opacity: 0.25;
+  transition: opacity 0.15s, transform 0.15s, background-color 0.15s;
+}
+
+.zh-zen-dot-btn:hover::after,
+.zh-zen-dot-btn.active::after {
+  opacity: 0.9;
+  background: var(--accent);
+  transform: scale(1.4);
+}
+
+.zh-zen-panel {
+  position: fixed;
+  top: 24px;
+  right: 10px;
+  z-index: 65;
+  width: 340px;
+  max-width: calc(100vw - 20px);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--panel-shadow);
+  padding: 15px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.zh-zen-row {
+  margin-bottom: 12px;
+}
+
+.zh-zen-row:last-child {
+  margin-bottom: 0;
+}
+
+.zh-zen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.zh-zen-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.zh-zen-btn-group {
+  display: flex;
+  gap: 5px;
+}
+
+.zh-zen-btn {
+  padding: 5px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zh-zen-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.zh-zen-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.zh-zen-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 12px;
+}
+
+.zh-zen-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: var(--text-subtle);
+  font-weight: 600;
+}
+
+.zh-zen-val {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.zh-zen-range {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 2px 0;
+}
+
+.zh-zen-presets {
+  display: flex;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.zh-zen-pill {
+  flex: 1;
+  text-align: center;
+  padding: 4px 4px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.zh-zen-pill.active,
+.zh-zen-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.zh-zen-chk-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.zh-zen-chk-label:first-child {
+  margin-top: 0;
+}
+
 /* Responsive tweaks */
 @media (max-width: 640px) {
-  .topbar-inner,
+  .topbar {
+    width: calc(100% - 12px);
+    margin: 6px auto 4px;
+  }
+
   .main-col {
-    padding-left: 12px;
-    padding-right: 12px;
+    width: calc(100% - 12px);
+    padding: 4px 0 56px;
+  }
+
+  .zen-nav-links {
+    display: none;
   }
 
   .kbd-hint {
