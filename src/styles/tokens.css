@@ -1,0 +1,82 @@
+/* xsmth-web visual tokens — faithful to Maxwin-z/xsmth-newsmth SMTheme.m */
+:root {
+  color-scheme: light dark;
+
+  /* UI chrome font (meta, timestamps, buttons) stays crisp & compact regardless of reading font */
+  --font-ui: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+    'Helvetica Neue', sans-serif;
+  /* Reading prose font (topic titles & post body) customizable by user */
+  --font-reading: 'PingFang SC', 'Hiragino Sans GB', -apple-system, BlinkMacSystemFont,
+    'Noto Sans SC', 'Helvetica Neue', sans-serif;
+  --font-sans: var(--font-ui);
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --font-size-body: 15.5px;
+  --col-width: 720px;
+  --topbar-height: 48px;
+  --drawer-width: 268px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --ease-ui: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Light (default xsmth paper grayscale) */
+  --bg: #fcfcfc;
+  --surface: #ffffff;
+  --surface-subtle: #f4f4f5;
+  --surface-hover: #efefef;
+  --border: #ebebee;
+  --border-strong: #d4d4d8;
+  --text: #222224;
+  --text-muted: #727278;
+  --text-subtle: #96969e;
+  --text-quote: #83838a;
+  --text-read: #96969d;
+  --accent: #1c00ce;
+  --accent-soft: rgba(28, 0, 206, 0.08);
+  --danger: #b91c1c;
+  --danger-soft: rgba(185, 28, 28, 0.09);
+  --like-tint: #4b5563;
+  --backdrop: rgba(18, 18, 20, 0.42);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1e1e20;
+  --surface: #262628;
+  --surface-subtle: #2e2e31;
+  --surface-hover: #35353a;
+  --border: #323237;
+  --border-strong: #4a4a52;
+  --text: #dadadf;
+  --text-muted: #8b8b93;
+  --text-subtle: #6e6e77;
+  --text-quote: #7d7d86;
+  --text-read: #6b6b73;
+  --accent: #8f9bff;
+  --accent-soft: rgba(143, 155, 255, 0.14);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --like-tint: #a1a1aa;
+  --backdrop: rgba(0, 0, 0, 0.65);
+}
+
+:root[data-theme='oled'] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #0c0c0d;
+  --surface-subtle: #151517;
+  --surface-hover: #1d1d20;
+  --border: #202024;
+  --border-strong: #38383f;
+  --text: #cfcfd4;
+  --text-muted: #82828a;
+  --text-subtle: #65656e;
+  --text-quote: #73737c;
+  --text-read: #616169;
+  --accent: #8f9bff;
+  --accent-soft: rgba(143, 155, 255, 0.15);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.15);
+  --like-tint: #9e9ea6;
+  --backdrop: rgba(0, 0, 0, 0.78);
+}
